@@ -1,11 +1,14 @@
 package com;
 
 import java.util.Scanner;
+import java.util.concurrent.*;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         OperatorFactory factory = new OperatorFactory();
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<Double> future;
 
         System.out.print("Please, enter the first number: ");
         double a = scanner.nextDouble();
@@ -25,6 +28,17 @@ public class Main {
                 "8.remainder.\n");
         int operator = scanner.nextInt();
 
-        System.out.println("\nThe result is:" + factory.getCalculation(operator).calculate(a, b));
+        Callable task = () -> {
+            return factory.getCalculation(operator).calculate(a, b);
+        };
+
+        future = executor.submit(task);
+
+        try {
+            System.out.println("\nThe result is:" + future.get() + ". From thread:" + Thread.currentThread().getName());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        executor.shutdown();
     }
 }
